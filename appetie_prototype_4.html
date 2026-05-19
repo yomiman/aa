@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appetie — Prototype Demo</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><rect x='6' y='6' width='68' height='68' rx='18' fill='%232F4A2C'/><path d='M 28 56 Q 28 32 46 24 Q 60 20 60 20 Q 60 38 46 50 Q 36 58 28 56 Z' fill='%23A9C796'/><circle cx='64' cy='42' r='2.4' fill='%23D9A05B'/></svg>">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F1EA;
+    --paper: #FBF9F3;
+    --ink: #1A2419;
+    --ink-2: #3D4A3A;
+    --moss: #2F4A2C;
+    --moss-deep: #1F3A1C;
+    --leaf: #6B8E5A;
+    --leaf-light: #A9C796;
+    --cream: #EFEAD8;
+    --amber: #D9A05B;
+    --terracotta: #C2613B;
+    --line: #E2DDD0;
+    --shadow: 0 1px 2px rgba(31, 58, 28, 0.04), 0 8px 24px rgba(31, 58, 28, 0.08);
+  }
+
+  * { -webkit-font-smoothing: antialiased; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(169, 199, 150, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(217, 160, 91, 0.08) 0%, transparent 40%);
+    min-height: 100vh;
+  }
+
+  .font-display { font-family: 'Fraunces', serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Phone frame */
+  .phone-frame {
+    width: 390px;
+    height: 800px;
+    background: #0A0A0A;
+    border-radius: 48px;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #2a2a2a,
+      0 20px 60px rgba(0, 0, 0, 0.25),
+      0 8px 20px rgba(31, 58, 28, 0.12);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--paper);
+    border-radius: 36px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Notch */
+  .phone-notch {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 28px;
+    background: #0A0A0A;
+    border-radius: 18px;
+    z-index: 100;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 48px;
+    padding: 18px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    height: 84px;
+    border-top: 1px solid var(--line);
+    background: rgba(251, 249, 243, 0.95);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding: 12px 8px 28px;
+    flex-shrink: 0;
+  }
+
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-item.active { color: var(--moss); }
+  .tab-item:not(.active) { color: #9CA396; }
+  .tab-item .tab-icon { width: 24px; height: 24px; }
+  .tab-item .tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
+
+  /* Content scroll area */
+  .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .screen-content::-webkit-scrollbar { display: none; }
+
+  /* Cards */
+  .item-card {
+    background: white;
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+    overflow: hidden;
+  }
+  .item-card:active { transform: scale(0.98); }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--moss);
+    color: var(--paper);
+    border-radius: 16px;
+    padding: 16px 24px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(47, 74, 44, 0.25);
+  }
+  .btn-primary:hover { background: var(--moss-deep); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-secondary {
+    background: var(--cream);
+    color: var(--moss-deep);
+    border-radius: 16px;
+    padding: 16px 24px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.2s;
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .btn-secondary:hover { background: var(--leaf-light); }
+
+  /* Pills / badges */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .pill-food { background: #E8F0DE; color: #3D5A2E; }
+  .pill-cook { background: #F4E8D8; color: #8A5A28; }
+  .pill-fresh { background: var(--moss); color: white; }
+  .pill-soon { background: #FAE5D7; color: var(--terracotta); }
+
+  /* Screen heading */
+  .screen-heading {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  /* Filter chips */
+  .filter-chip {
+    padding: 8px 14px;
+    border-radius: 100px;
+    background: white;
+    border: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-chip.active {
+    background: var(--moss);
+    color: white;
+    border-color: var(--moss);
+  }
+
+  /* Screen tag (above each phone) */
+  .screen-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .screen-tag::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--moss);
+  }
+
+  /* Hidden screens */
+  .screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+  }
+  .screen.active { display: flex; }
+
+  /* Animations */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .screen.active > * { animation: slideUp 0.3s ease-out backwards; }
+  .screen.active > *:nth-child(2) { animation-delay: 0.05s; }
+  .screen.active > *:nth-child(3) { animation-delay: 0.1s; }
+
+  /* Locker grid */
+  .locker-cell {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: #E8E4D6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-2);
+    border: 1.5px solid transparent;
+    position: relative;
+  }
+  .locker-cell.empty { background: #F0EDE0; color: #B8B5A8; }
+  .locker-cell.full { background: var(--leaf-light); color: var(--moss-deep); }
+  .locker-cell.yours {
+    background: var(--moss);
+    color: white;
+    animation: pulse 2s infinite;
+    border-color: var(--amber);
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(217, 160, 91, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(217, 160, 91, 0); }
+  }
+
+  /* QR pattern */
+  .qr-pattern {
+    background:
+      conic-gradient(from 0deg at 50% 50%, #1A2419 0deg, transparent 90deg, #1A2419 180deg, transparent 270deg, #1A2419 360deg),
+      repeating-linear-gradient(0deg, #1A2419 0 4px, transparent 4px 8px),
+      repeating-linear-gradient(90deg, #1A2419 0 4px, transparent 4px 8px);
+    background-blend-mode: difference;
+    background-size: 100% 100%, 8px 8px, 8px 8px;
+  }
+
+  /* Numbers heading style for impact */
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  /* Decorative leaf SVG color */
+  .leaf-decoration {
+    position: absolute;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  /* Toast notification (used in both phone and desktop views) */
+  .toast, .toast-fixed {
+    background: var(--moss-deep);
+    color: var(--paper);
+    padding: 12px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 50;
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+  }
+  .toast.show, .toast-fixed.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Annotation labels for demo */
+  .annotation {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* Sidebar nav */
+  .demo-nav-item {
+    width: 100%;
+    text-align: left;
+    padding: 14px 20px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--ink-2);
+  }
+  .demo-nav-item:hover { background: rgba(47, 74, 44, 0.04); }
+  .demo-nav-item.active {
+    background: var(--moss);
+    color: white;
+    border-color: var(--moss-deep);
+  }
+  .demo-nav-item.active .nav-num { background: rgba(255,255,255,0.2); color: white; }
+  .nav-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--cream);
+    color: var(--moss-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* Confetti for success */
+  @keyframes confetti-fall {
+    0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(800px) rotate(720deg); opacity: 0; }
+  }
+  .confetti {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+  }
+
+  /* ===== Desktop / Vendor dashboard ===== */
+  .desktop-frame {
+    width: 100%;
+    max-width: 1000px;
+    background: var(--paper);
+    border-radius: 16px;
+    box-shadow:
+      0 0 0 1px var(--line),
+      0 20px 60px rgba(31, 58, 28, 0.12),
+      0 8px 20px rgba(31, 58, 28, 0.06);
+    overflow: hidden;
+    animation: slideUp 0.4s ease-out;
+  }
+
+  .browser-chrome {
+    height: 38px;
+    background: #ECE7DB;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 14px;
+  }
+  .browser-url {
+    flex: 1;
+    height: 22px;
+    background: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+
+  .desktop-content {
+    padding: 20px 24px 24px;
+  }
+
+  .vendor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .vendor-status {
+    background: #E8F0DE;
+    border: 1px solid #C5D6B0;
+    color: #3D5A2E;
+    padding: 6px 12px;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #5C8F3E;
+    box-shadow: 0 0 0 0 rgba(92, 143, 62, 0.5);
+    animation: dot-pulse 2s infinite;
+  }
+  @keyframes dot-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(92, 143, 62, 0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(92, 143, 62, 0); }
+  }
+
+  .vendor-btn-ghost {
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .vendor-btn-ghost:hover { background: var(--cream); }
+
+  .vendor-btn-primary {
+    padding: 12px 20px;
+    border-radius: 12px;
+    background: var(--moss);
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 4px 14px rgba(47, 74, 44, 0.25);
+    white-space: nowrap;
+  }
+  .vendor-btn-primary:hover { background: var(--moss-deep); }
+
+  /* KPI strip */
+  .vendor-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .vendor-kpi {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .vendor-kpi-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .vendor-kpi-value {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .vendor-kpi-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    margin-top: 6px;
+    color: var(--moss);
+    font-weight: 600;
+  }
+  .vendor-kpi-delta.up::before { content: '↑ '; }
+
+  /* Main layout */
+  .vendor-main {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
+  }
+
+  .vendor-card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px 20px;
+  }
+
+  .vendor-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .vendor-section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .vendor-section-title-sm {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  /* Table */
+  .vendor-table { border-top: 1px solid var(--line); }
+  .vendor-table-header {
+    display: flex;
+    gap: 12px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .vendor-table-row {
+    display: flex;
+    gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+  }
+  .vendor-table-row:hover { background: #FBF9F3; }
+  .vendor-table-add {
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .vendor-table-add:hover { opacity: 1; background: var(--cream); }
+
+  .vendor-icon-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .vendor-icon-btn:hover { background: var(--cream); color: var(--ink); }
+
+  .vendor-form-footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .vendor-side {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .vendor-card-sm {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  /* ===== Hardware view: Smart Locker ===== */
+  .hardware-frame {
+    width: 100%;
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 1.3fr 0.9fr;
+    gap: 32px;
+    animation: slideUp 0.4s ease-out;
+  }
+  @media (max-width: 900px) {
+    .hardware-frame { grid-template-columns: 1fr; }
+  }
+
+  .hw-stage {
+    position: relative;
+    background: linear-gradient(180deg, #F8F4E8 0%, #EAE2CB 70%, #D8CFB3 100%);
+    border-radius: 20px;
+    padding: 48px 32px 64px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 20px 50px rgba(31, 58, 28, 0.10);
+    border: 1px solid var(--line);
+  }
+  .hw-stage::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 70px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.06) 100%);
+    border-radius: 0 0 20px 20px;
+    pointer-events: none;
+  }
+
+  .hw-locker {
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+    position: relative;
+    filter: drop-shadow(0 24px 32px rgba(31, 58, 28, 0.25));
+  }
+
+  /* Numbered pins on the locker */
+  .hw-pin {
+    position: absolute;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    color: white;
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 3px var(--paper), 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .hw-pin-1 { top: 16px; right: -8px; }
+  .hw-pin-2 { top: 56px; right: 6px; }
+  .hw-pin-3 { top: 154px; left: -8px; }
+  .hw-pin-4 { top: 240px; right: -8px; }
+  .hw-pin-5 { bottom: -8px; left: 50%; transform: translateX(-50%); }
+
+  .hw-shell {
+    background: linear-gradient(180deg, var(--moss) 0%, var(--moss-deep) 100%);
+    border-radius: 8px 8px 4px 4px;
+    padding: 12px;
+    position: relative;
+  }
+  .hw-shell::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    pointer-events: none;
+  }
+
+  .hw-control-panel {
+    background: #15290F;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 14px;
+    align-items: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+
+  .hw-brand { display: flex; align-items: center; gap: 9px; }
+  .hw-brand-logo {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    background: var(--moss);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hw-brand-text {
+    color: var(--cream);
+    font-family: 'Fraunces', ui-serif, Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .hw-brand-sub {
+    color: rgba(239, 234, 216, 0.5);
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+  }
+
+  .hw-screen-display {
+    background: var(--moss);
+    border-radius: 4px;
+    padding: 7px 12px;
+    min-width: 90px;
+    color: var(--cream);
+    text-align: center;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.4), 0 0 12px rgba(169, 199, 150, 0.15);
+    border: 1px solid #15290F;
+  }
+  .hw-screen-label {
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-size: 7px;
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+  }
+  .hw-screen-value {
+    font-family: 'Fraunces', ui-serif, Georgia, serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--leaf-light);
+    margin-top: 1px;
+  }
+
+  .hw-scanner {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #2a2218 0%, #0a0805 60%);
+    position: relative;
+    border: 2px solid #15290F;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .hw-scanner::before {
+    content: '';
+    position: absolute;
+    top: 7px; left: 7px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(169, 199, 150, 0.6) 0%, transparent 70%);
+  }
+  .hw-scanner::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #050300;
+    box-shadow: 0 0 3px rgba(169, 199, 150, 0.4);
+  }
+
+  .hw-compartments {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    background: #15290F;
+    padding: 5px;
+    border-radius: 4px;
+  }
+
+  .hw-comp {
+    aspect-ratio: 1.2 / 1;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .hw-comp.empty { background: linear-gradient(135deg, #3a5535 0%, #2c4128 100%); }
+  .hw-comp.occupied { background: linear-gradient(135deg, var(--cream) 0%, #E2D9BC 100%); }
+  .hw-comp.reserved { background: linear-gradient(135deg, #f3d693 0%, var(--amber) 100%); }
+
+  .hw-comp::before {
+    content: '';
+    position: absolute;
+    top: 8px; bottom: 8px;
+    right: 9px;
+    width: 1px;
+    background: rgba(0,0,0,0.1);
+  }
+  .hw-comp::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    transform: translateY(-50%);
+    width: 7px;
+    height: 12px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #D9D2BD 0%, #B5AC92 100%);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+
+  .hw-led {
+    position: absolute;
+    bottom: 7px; left: 7px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--leaf);
+    box-shadow: 0 0 4px var(--leaf);
+  }
+  .hw-comp.empty .hw-led { background: #5a6f50; box-shadow: none; opacity: 0.4; }
+  .hw-comp.reserved .hw-led {
+    background: var(--amber);
+    box-shadow: 0 0 6px #F5C168;
+    animation: hw-pulse 2s infinite;
+  }
+  @keyframes hw-pulse {
+    0%, 100% { box-shadow: 0 0 4px var(--amber); }
+    50% { box-shadow: 0 0 10px #F5C168; }
+  }
+
+  .hw-comp-label {
+    position: absolute;
+    top: 5px; left: 7px;
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-size: 8px;
+    font-weight: 600;
+    color: var(--moss-deep);
+    opacity: 0.5;
+  }
+  .hw-comp.empty .hw-comp-label { color: var(--leaf-light); opacity: 0.5; }
+
+  .hw-base {
+    height: 24px;
+    background: linear-gradient(180deg, var(--moss-deep) 0%, #15290F 100%);
+    border-radius: 0 0 4px 4px;
+    margin-top: -2px;
+    position: relative;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.4);
+  }
+  .hw-base::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 1px;
+  }
+
+  .hw-floor-shadow {
+    width: 75%;
+    height: 20px;
+    margin: -10px auto 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, transparent 70%);
+    filter: blur(4px);
+  }
+
+  /* Right info panel */
+  .hw-info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .hw-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .hw-card-title {
+    font-family: 'Fraunces', ui-serif, Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .hw-card-sub {
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-2);
+    text-transform: uppercase;
+    margin-top: -8px;
+    margin-bottom: 12px;
+  }
+
+  .hw-callouts {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hw-callout {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .hw-callout-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    color: white;
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .hw-callout div { flex: 1; }
+  .hw-callout strong {
+    display: block;
+    font-size: 12px;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .hw-callout span {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-top: 1px;
+  }
+
+  .hw-card-cost {
+    background: linear-gradient(135deg, var(--moss-deep) 0%, var(--moss) 100%);
+    color: white;
+    border: none;
+  }
+  .hw-cost-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 12px;
+  }
+  .hw-cost-line:first-of-type { border-top: none; }
+  .hw-cost-line span:first-child { opacity: 0.85; }
+  .hw-cost-line span:last-child { font-weight: 600; font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; }
+  .hw-cost-total {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .hw-cost-total span:first-child { font-size: 11px; opacity: 0.8; }
+  .hw-cost-total span:last-child {
+    font-family: 'Fraunces', ui-serif, Georgia, serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #F5C168;
+  }
+</style>
+</head>
+<body>
+
+<div class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="px-12 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-end justify-between flex-wrap gap-6">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <!-- Logo: Locker Leaf -->
+          <svg viewBox="0 0 80 80" class="w-10 h-10" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6" y="6" width="68" height="68" rx="18" fill="var(--moss)"/>
+            <path d="M 28 56 Q 28 32 46 24 Q 60 20 60 20 Q 60 38 46 50 Q 36 58 28 56 Z" fill="var(--leaf-light)"/>
+            <path d="M 30 54 Q 44 42 58 22" stroke="var(--moss)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            <circle cx="64" cy="42" r="2.4" fill="var(--amber)"/>
+          </svg>
+          <h1 class="font-display text-4xl font-semibold tracking-tight text-[var(--ink)]">Appetie</h1>
+          <span class="font-mono text-xs text-[var(--ink-2)] px-2 py-1 bg-[var(--cream)] rounded-full">PROTOTYPE v0.1</span>
+        </div>
+        <p class="text-[var(--ink-2)] text-sm max-w-2xl">Anonymous peer-to-peer food &amp; cookware sharing for HKBU dormitory students. Click through the 5 screens to walk through the full user journey.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          <div class="font-mono text-xs uppercase tracking-wider text-[var(--ink-2)]">BBA Final Year Project</div>
+          <div class="text-sm font-semibold">Cao Yuming · 24225681</div>
+          <div class="font-mono text-xs text-[var(--ink-2)] mt-0.5">ENT/EBI Concentration · AY 2025/26</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main demo area -->
+  <main class="flex-1 flex gap-8 px-12 py-10 max-w-[1600px] mx-auto w-full">
+
+    <!-- LEFT: Navigation -->
+    <aside class="w-72 flex-shrink-0">
+      <div class="sticky top-8">
+        <div class="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--ink-2)] mb-4 px-2">User Journey</div>
+        <nav class="flex flex-col gap-1.5">
+          <button class="demo-nav-item active" data-screen="home">
+            <span class="nav-num">01</span>
+            <span class="flex-1">
+              <span class="block text-sm font-semibold">Browse</span>
+              <span class="block text-[11px] opacity-70 mt-0.5">Discover available items</span>
+            </span>
+          </button>
+          <button class="demo-nav-item" data-screen="detail">
+            <span class="nav-num">02</span>
+            <span class="flex-1">
+              <span class="block text-sm font-semibold">Item Detail</span>
+              <span class="block text-[11px] opacity-70 mt-0.5">Reserve a listing</span>
+            </span>
+          </button>
+          <button class="demo-nav-item" data-screen="locker">
+            <span class="nav-num">03</span>
+            <span class="flex-1">
+              <span class="block text-sm font-semibold">Smart Locker</span>
+              <span class="block text-[11px] opacity-70 mt-0.5">Collect via QR code</span>
+            </span>
+          </button>
+          <button class="demo-nav-item" data-screen="list">
+            <span class="nav-num">04</span>
+            <span class="flex-1">
+              <span class="block text-sm font-semibold">List Item</span>
+              <span class="block text-[11px] opacity-70 mt-0.5">Contributor flow</span>
+            </span>
+          </button>
+          <button class="demo-nav-item" data-screen="profile">
+            <span class="nav-num">05</span>
+            <span class="flex-1">
+              <span class="block text-sm font-semibold">Eco-Profile</span>
+              <span class="block text-[11px] opacity-70 mt-0.5">Points &amp; impact</span>
+            </span>
+          </button>
+
+          <div class="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--ink-2)] mt-5 mb-2 px-2 pt-3 border-t border-[var(--line)]">B2B Partner</div>
+
+          <button class="demo-nav-item" data-screen="vendor">
+            <span class="nav-num">06</span>
+            <span class="flex-1">
+              <span class="block text-sm font-semibold">Canteen Console</span>
+              <span class="block text-[11px] opacity-70 mt-0.5">7 p.m. bulk listing</span>
+            </span>
+          </button>
+
+          <div class="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--ink-2)] mt-5 mb-2 px-2 pt-3 border-t border-[var(--line)]">Hardware</div>
+
+          <button class="demo-nav-item" data-screen="locker_hw">
+            <span class="nav-num">07</span>
+            <span class="flex-1">
+              <span class="block text-sm font-semibold">Smart Locker</span>
+              <span class="block text-[11px] opacity-70 mt-0.5">Physical unit · 12 compartments</span>
+            </span>
+          </button>
+        </nav>
+
+        <!-- Stats card -->
+        <div class="mt-8 p-5 rounded-2xl border border-[var(--line)] bg-white">
+          <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] mb-3">Design grounded in</div>
+          <div class="space-y-3">
+            <div>
+              <div class="stat-num text-2xl text-[var(--moss-deep)]">77.6%</div>
+              <div class="text-[11px] text-[var(--ink-2)] leading-tight mt-0.5">discarded edible food last month</div>
+            </div>
+            <div>
+              <div class="stat-num text-2xl text-[var(--moss-deep)]">63.8%</div>
+              <div class="text-[11px] text-[var(--ink-2)] leading-tight mt-0.5">high intention to use (4-5/5)</div>
+            </div>
+            <div>
+              <div class="stat-num text-2xl text-[var(--moss-deep)]">3.66/5</div>
+              <div class="text-[11px] text-[var(--ink-2)] leading-tight mt-0.5">anonymity rated #1 feature</div>
+            </div>
+          </div>
+          <div class="font-mono text-[10px] text-[var(--ink-2)] mt-4 pt-3 border-t border-[var(--line)]">n=58 HKBU students · April 2026</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER: Phone mockup -->
+    <div class="flex-1 flex flex-col items-center">
+
+      <!-- Screen label -->
+      <div class="screen-tag" id="screen-label">SCREEN 01 / 07 — BROWSE</div>
+
+      <!-- Phone frame (shown for screens 1-5) -->
+      <div class="phone-frame" id="phone-container">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+
+          <!-- ===== SCREEN 1: BROWSE / HOME ===== -->
+          <div class="screen active" data-name="home">
+            <div class="status-bar">
+              <span>9:41</span>
+              <span class="flex items-center gap-1">
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M0 8h2v3H0zm4-2h2v5H4zm4-2h2v7H8zm4-2h2v9h-2z"/></svg>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M7 0C4.4 0 2 1 .2 2.7l1.4 1.4C2.9 2.7 4.9 2 7 2s4.1.7 5.4 2.1l1.4-1.4C12 1 9.6 0 7 0zM3 5.6L4.4 7c.7-.7 1.6-1 2.6-1s1.9.3 2.6 1L11 5.6C9.9 4.6 8.5 4 7 4s-2.9.6-4 1.6zM7 8.5L9 10l-2 1.5L5 10l2-1.5z"/></svg>
+                <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="17" height="7" rx="1" fill="currentColor"/><rect x="21" y="3" width="1.5" height="5" rx="0.5" fill="currentColor"/></svg>
+              </span>
+            </div>
+
+            <!-- Header -->
+            <div class="px-6 pt-4 pb-3">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)]">Wed 14 May · HKBU Dorms</div>
+                  <h2 class="screen-heading text-2xl mt-1">Good evening,<br>here&rsquo;s what&rsquo;s nearby</h2>
+                </div>
+              </div>
+
+              <!-- Eco-points balance -->
+              <div class="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-[var(--moss)] to-[var(--moss-deep)] text-white">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg>
+                  </div>
+                  <div>
+                    <div class="text-[10px] uppercase tracking-wider opacity-80 font-mono">Eco-Points</div>
+                    <div class="font-display text-xl font-semibold leading-none mt-0.5">142</div>
+                  </div>
+                </div>
+                <button class="text-xs font-semibold bg-white/15 px-3 py-1.5 rounded-full">Redeem</button>
+              </div>
+            </div>
+
+            <!-- Filter chips -->
+            <div class="px-6 mb-3 overflow-x-auto" style="scrollbar-width: none;">
+              <div class="flex gap-2">
+                <div class="filter-chip active">All · 24</div>
+                <div class="filter-chip">🍜 Food</div>
+                <div class="filter-chip">🍳 Cookware</div>
+                <div class="filter-chip">⚡ Expiring soon</div>
+                <div class="filter-chip">📍 NTT Hall</div>
+              </div>
+            </div>
+
+            <!-- Item list -->
+            <div class="screen-content px-6 pb-4 space-y-3">
+
+              <!-- Highlighted card -->
+              <div class="item-card" id="card-rice" style="cursor:pointer;" onclick="navigateTo('detail')">
+                <div class="flex gap-3 p-4">
+                  <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--cream)] to-[#E8D9B0] flex items-center justify-center text-4xl flex-shrink-0">🍚</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start gap-2 mb-1">
+                      <span class="pill pill-food">FOOD</span>
+                      <span class="pill pill-fresh">Fresh today</span>
+                    </div>
+                    <div class="font-semibold text-[15px] leading-tight">Unopened jasmine rice (2kg)</div>
+                    <div class="text-xs text-[var(--ink-2)] mt-1 flex items-center gap-1.5">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      NTT Hall · Locker A-03 · 38m away
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      <span class="font-mono text-[10px] text-[var(--ink-2)]">Donor #2847</span>
+                      <span class="text-[var(--line)]">·</span>
+                      <span class="font-mono text-[10px] text-[var(--moss)] font-semibold">EXP 30 Aug</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="item-card">
+                <div class="flex gap-3 p-4">
+                  <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#F5E0CE] to-[#E8C09A] flex items-center justify-center text-4xl flex-shrink-0">🍳</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start gap-2 mb-1">
+                      <span class="pill pill-cook">COOKWARE</span>
+                      <span class="text-[10px] text-[var(--ink-2)] font-mono">Condition: GOOD</span>
+                    </div>
+                    <div class="font-semibold text-[15px] leading-tight">Non-stick frying pan, 24cm</div>
+                    <div class="text-xs text-[var(--ink-2)] mt-1 flex items-center gap-1.5">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      UG Hall · Locker B-07 · 120m away
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      <span class="font-mono text-[10px] text-[var(--ink-2)]">Donor #1592 · graduating</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="item-card">
+                <div class="flex gap-3 p-4">
+                  <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FBE5D6] to-[#F4C99A] flex items-center justify-center text-4xl flex-shrink-0">🍜</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start gap-2 mb-1">
+                      <span class="pill pill-food">FOOD</span>
+                      <span class="pill pill-soon">Exp in 3 days</span>
+                    </div>
+                    <div class="font-semibold text-[15px] leading-tight">Instant noodles × 6 packs</div>
+                    <div class="text-xs text-[var(--ink-2)] mt-1 flex items-center gap-1.5">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      VC Hall · Locker C-02 · 65m away
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      <span class="font-mono text-[10px] text-[var(--ink-2)]">Donor #3001</span>
+                      <span class="text-[var(--line)]">·</span>
+                      <span class="font-mono text-[10px] text-[var(--terracotta)] font-semibold">EXP 17 May</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="item-card">
+                <div class="flex gap-3 p-4">
+                  <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#E8DCC2] to-[#C9B58C] flex items-center justify-center text-4xl flex-shrink-0">⚙️</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start gap-2 mb-1">
+                      <span class="pill pill-cook">COOKWARE</span>
+                      <span class="text-[10px] text-[var(--ink-2)] font-mono">Condition: FAIR</span>
+                    </div>
+                    <div class="font-semibold text-[15px] leading-tight">Rice cooker (1.5L, works fine)</div>
+                    <div class="text-xs text-[var(--ink-2)] mt-1 flex items-center gap-1.5">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      NTT Hall · Locker A-11 · 38m away
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      <span class="font-mono text-[10px] text-[var(--ink-2)]">Donor #2199 · exchange ending</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="h-2"></div>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="tab-bar">
+              <div class="tab-item active">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span class="tab-label">BROWSE</span>
+              </div>
+              <div class="tab-item">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <span class="tab-label">SEARCH</span>
+              </div>
+              <div class="tab-item" onclick="navigateTo('list')" style="cursor:pointer;">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>
+                <span class="tab-label">LIST</span>
+              </div>
+              <div class="tab-item">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="14" r="1"/></svg>
+                <span class="tab-label">LOCKER</span>
+              </div>
+              <div class="tab-item" onclick="navigateTo('profile')" style="cursor:pointer;">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
+                <span class="tab-label">YOU</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== SCREEN 2: ITEM DETAIL ===== -->
+          <div class="screen" data-name="detail">
+            <div class="status-bar">
+              <span>9:42</span>
+              <span class="flex items-center gap-1">
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M0 8h2v3H0zm4-2h2v5H4zm4-2h2v7H8zm4-2h2v9h-2z"/></svg>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M7 0C4.4 0 2 1 .2 2.7l1.4 1.4C2.9 2.7 4.9 2 7 2s4.1.7 5.4 2.1l1.4-1.4C12 1 9.6 0 7 0zM3 5.6L4.4 7c.7-.7 1.6-1 2.6-1s1.9.3 2.6 1L11 5.6C9.9 4.6 8.5 4 7 4s-2.9.6-4 1.6zM7 8.5L9 10l-2 1.5L5 10l2-1.5z"/></svg>
+                <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="17" height="7" rx="1" fill="currentColor"/><rect x="21" y="3" width="1.5" height="5" rx="0.5" fill="currentColor"/></svg>
+              </span>
+            </div>
+
+            <!-- Back button -->
+            <div class="px-6 py-3 flex items-center justify-between">
+              <button onclick="navigateTo('home')" class="w-10 h-10 rounded-full bg-[var(--cream)] flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <button class="w-10 h-10 rounded-full bg-[var(--cream)] flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </button>
+            </div>
+
+            <div class="screen-content">
+
+              <!-- Hero image -->
+              <div class="mx-6 h-48 rounded-3xl bg-gradient-to-br from-[var(--cream)] to-[#E8D9B0] flex items-center justify-center text-8xl relative overflow-hidden">
+                🍚
+                <div class="absolute top-3 left-3 flex gap-1.5">
+                  <span class="pill pill-food">FOOD</span>
+                  <span class="pill pill-fresh">Sealed · Unopened</span>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="px-6 py-5">
+                <h2 class="font-display text-2xl font-semibold leading-tight">Unopened jasmine rice<br>(2kg bag)</h2>
+                <div class="font-mono text-xs text-[var(--ink-2)] mt-1.5">Listed 14 May, 18:23 · Item ID #A-2847-031</div>
+
+                <!-- Donor block -->
+                <div class="mt-4 p-3 rounded-2xl bg-[var(--cream)] flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-[var(--moss)] flex items-center justify-center text-white">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="9" r="3"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-sm font-semibold">Anonymous Donor #2847</div>
+                    <div class="font-mono text-[10px] text-[var(--ink-2)] mt-0.5">★ 4.9 reputation · 12 prior shares</div>
+                  </div>
+                  <div class="text-[10px] text-[var(--moss)] font-mono font-semibold bg-white px-2 py-1 rounded-full">VERIFIED HKBU</div>
+                </div>
+
+                <!-- Description -->
+                <div class="mt-4">
+                  <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] mb-2">From the donor</div>
+                  <p class="text-sm text-[var(--ink-2)] leading-relaxed">Bought too much before exam period. Bag is sealed and stored in dry cupboard. Brand: Golden Phoenix. Happy to pass on instead of leaving it behind when I move out.</p>
+                </div>
+
+                <!-- Details grid -->
+                <div class="mt-5 grid grid-cols-2 gap-2.5">
+                  <div class="p-3 rounded-xl border border-[var(--line)] bg-white">
+                    <div class="font-mono text-[10px] uppercase text-[var(--ink-2)] mb-1">Locker</div>
+                    <div class="font-semibold text-sm">NTT Hall · A-03</div>
+                  </div>
+                  <div class="p-3 rounded-xl border border-[var(--line)] bg-white">
+                    <div class="font-mono text-[10px] uppercase text-[var(--ink-2)] mb-1">Expires</div>
+                    <div class="font-semibold text-sm">30 Aug 2026</div>
+                  </div>
+                  <div class="p-3 rounded-xl border border-[var(--line)] bg-white">
+                    <div class="font-mono text-[10px] uppercase text-[var(--ink-2)] mb-1">Distance</div>
+                    <div class="font-semibold text-sm">38m · 1 min walk</div>
+                  </div>
+                  <div class="p-3 rounded-xl border border-[var(--line)] bg-white">
+                    <div class="font-mono text-[10px] uppercase text-[var(--ink-2)] mb-1">Reward</div>
+                    <div class="font-semibold text-sm text-[var(--moss)]">+5 Eco-Points</div>
+                  </div>
+                </div>
+
+                <!-- Safety note -->
+                <div class="mt-4 p-3 rounded-xl bg-[#F4EFE2] border border-[var(--cream)] flex gap-2.5">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--terracotta)" stroke-width="2" class="flex-shrink-0 mt-0.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <div class="text-[11px] text-[var(--ink-2)] leading-relaxed">
+                    <span class="font-semibold text-[var(--ink)]">Food safety:</span> Only sealed, pre-packaged items are listed. Item auto-removed 24h before expiry by the Purge Protocol.
+                  </div>
+                </div>
+
+                <div class="h-24"></div>
+              </div>
+            </div>
+
+            <!-- Reserve CTA -->
+            <div class="px-6 py-4 border-t border-[var(--line)] bg-[var(--paper)]">
+              <button class="btn-primary w-full flex items-center justify-center gap-2" onclick="reserveItem()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Reserve · 4h hold
+              </button>
+            </div>
+          </div>
+
+          <!-- ===== SCREEN 3: SMART LOCKER ===== -->
+          <div class="screen" data-name="locker">
+            <div class="status-bar">
+              <span>9:48</span>
+              <span class="flex items-center gap-1">
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M0 8h2v3H0zm4-2h2v5H4zm4-2h2v7H8zm4-2h2v9h-2z"/></svg>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M7 0C4.4 0 2 1 .2 2.7l1.4 1.4C2.9 2.7 4.9 2 7 2s4.1.7 5.4 2.1l1.4-1.4C12 1 9.6 0 7 0zM3 5.6L4.4 7c.7-.7 1.6-1 2.6-1s1.9.3 2.6 1L11 5.6C9.9 4.6 8.5 4 7 4s-2.9.6-4 1.6zM7 8.5L9 10l-2 1.5L5 10l2-1.5z"/></svg>
+                <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="17" height="7" rx="1" fill="currentColor"/><rect x="21" y="3" width="1.5" height="5" rx="0.5" fill="currentColor"/></svg>
+              </span>
+            </div>
+
+            <div class="px-6 py-3 flex items-center justify-between">
+              <button onclick="navigateTo('detail')" class="w-10 h-10 rounded-full bg-[var(--cream)] flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div class="text-center">
+                <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)]">Locker NTT Hall</div>
+                <div class="font-semibold text-sm">A-03</div>
+              </div>
+              <div class="w-10"></div>
+            </div>
+
+            <div class="screen-content px-6">
+
+              <!-- Countdown -->
+              <div class="text-center my-3">
+                <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--moss)] mb-1">RESERVATION ACTIVE</div>
+                <div class="font-display text-3xl font-semibold text-[var(--ink)]">3h 47m left</div>
+                <div class="text-xs text-[var(--ink-2)] mt-1">Show this code at locker A-03</div>
+              </div>
+
+              <!-- QR Code -->
+              <div class="mx-auto w-56 h-56 bg-white rounded-3xl p-5 shadow-lg flex items-center justify-center relative">
+                <!-- Stylized QR -->
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                  <!-- Corner markers -->
+                  <rect x="0" y="0" width="22" height="22" fill="#1A2419"/>
+                  <rect x="4" y="4" width="14" height="14" fill="white"/>
+                  <rect x="7" y="7" width="8" height="8" fill="#1A2419"/>
+
+                  <rect x="78" y="0" width="22" height="22" fill="#1A2419"/>
+                  <rect x="82" y="4" width="14" height="14" fill="white"/>
+                  <rect x="85" y="7" width="8" height="8" fill="#1A2419"/>
+
+                  <rect x="0" y="78" width="22" height="22" fill="#1A2419"/>
+                  <rect x="4" y="82" width="14" height="14" fill="white"/>
+                  <rect x="7" y="85" width="8" height="8" fill="#1A2419"/>
+
+                  <!-- Random data pattern -->
+                  <g fill="#1A2419">
+                    <rect x="26" y="4" width="4" height="4"/><rect x="34" y="4" width="4" height="4"/><rect x="42" y="4" width="4" height="4"/><rect x="50" y="4" width="4" height="4"/><rect x="62" y="4" width="4" height="4"/><rect x="70" y="4" width="4" height="4"/>
+                    <rect x="30" y="10" width="4" height="4"/><rect x="38" y="10" width="4" height="4"/><rect x="46" y="10" width="4" height="4"/><rect x="58" y="10" width="4" height="4"/><rect x="66" y="10" width="4" height="4"/>
+                    <rect x="26" y="16" width="4" height="4"/><rect x="34" y="16" width="4" height="4"/><rect x="50" y="16" width="4" height="4"/><rect x="62" y="16" width="4" height="4"/><rect x="74" y="16" width="4" height="4"/>
+                    <rect x="4" y="26" width="4" height="4"/><rect x="14" y="26" width="4" height="4"/><rect x="22" y="26" width="4" height="4"/><rect x="34" y="26" width="4" height="4"/><rect x="46" y="26" width="4" height="4"/><rect x="58" y="26" width="4" height="4"/><rect x="70" y="26" width="4" height="4"/><rect x="82" y="26" width="4" height="4"/><rect x="90" y="26" width="4" height="4"/>
+                    <rect x="10" y="32" width="4" height="4"/><rect x="22" y="32" width="4" height="4"/><rect x="30" y="32" width="4" height="4"/><rect x="42" y="32" width="4" height="4"/><rect x="54" y="32" width="4" height="4"/><rect x="62" y="32" width="4" height="4"/><rect x="74" y="32" width="4" height="4"/><rect x="86" y="32" width="4" height="4"/>
+                    <rect x="4" y="38" width="4" height="4"/><rect x="18" y="38" width="4" height="4"/><rect x="26" y="38" width="4" height="4"/><rect x="38" y="38" width="4" height="4"/><rect x="50" y="38" width="4" height="4"/><rect x="66" y="38" width="4" height="4"/><rect x="78" y="38" width="4" height="4"/><rect x="90" y="38" width="4" height="4"/>
+                    <rect x="14" y="44" width="4" height="4"/><rect x="26" y="44" width="4" height="4"/><rect x="34" y="44" width="4" height="4"/><rect x="46" y="44" width="4" height="4"/><rect x="58" y="44" width="4" height="4"/><rect x="70" y="44" width="4" height="4"/><rect x="82" y="44" width="4" height="4"/>
+                    <rect x="4" y="50" width="4" height="4"/><rect x="22" y="50" width="4" height="4"/><rect x="38" y="50" width="4" height="4"/><rect x="50" y="50" width="4" height="4"/><rect x="62" y="50" width="4" height="4"/><rect x="78" y="50" width="4" height="4"/><rect x="90" y="50" width="4" height="4"/>
+                    <rect x="10" y="56" width="4" height="4"/><rect x="22" y="56" width="4" height="4"/><rect x="34" y="56" width="4" height="4"/><rect x="42" y="56" width="4" height="4"/><rect x="54" y="56" width="4" height="4"/><rect x="66" y="56" width="4" height="4"/><rect x="78" y="56" width="4" height="4"/><rect x="86" y="56" width="4" height="4"/>
+                    <rect x="4" y="62" width="4" height="4"/><rect x="18" y="62" width="4" height="4"/><rect x="30" y="62" width="4" height="4"/><rect x="46" y="62" width="4" height="4"/><rect x="58" y="62" width="4" height="4"/><rect x="74" y="62" width="4" height="4"/><rect x="90" y="62" width="4" height="4"/>
+                    <rect x="14" y="68" width="4" height="4"/><rect x="26" y="68" width="4" height="4"/><rect x="38" y="68" width="4" height="4"/><rect x="50" y="68" width="4" height="4"/><rect x="62" y="68" width="4" height="4"/><rect x="70" y="68" width="4" height="4"/><rect x="82" y="68" width="4" height="4"/>
+                    <rect x="26" y="78" width="4" height="4"/><rect x="34" y="78" width="4" height="4"/><rect x="46" y="78" width="4" height="4"/><rect x="58" y="78" width="4" height="4"/><rect x="66" y="78" width="4" height="4"/><rect x="74" y="78" width="4" height="4"/>
+                    <rect x="30" y="84" width="4" height="4"/><rect x="42" y="84" width="4" height="4"/><rect x="50" y="84" width="4" height="4"/><rect x="62" y="84" width="4" height="4"/><rect x="78" y="84" width="4" height="4"/><rect x="86" y="84" width="4" height="4"/>
+                    <rect x="26" y="90" width="4" height="4"/><rect x="38" y="90" width="4" height="4"/><rect x="54" y="90" width="4" height="4"/><rect x="70" y="90" width="4" height="4"/><rect x="82" y="90" width="4" height="4"/><rect x="90" y="90" width="4" height="4"/>
+                  </g>
+                  <!-- Logo center -->
+                  <circle cx="50" cy="50" r="10" fill="white"/>
+                  <circle cx="50" cy="50" r="7" fill="#2F4A2C"/>
+                  <path d="M50 44 Q47 47 47 50 Q47 53 50 54 Q53 53 53 50 Q53 47 50 44 Z" fill="white"/>
+                </svg>
+              </div>
+
+              <!-- Locker grid -->
+              <div class="mt-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)]">Locker map · 12 compartments</div>
+                  <div class="flex items-center gap-3 text-[10px] font-mono text-[var(--ink-2)]">
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-[var(--leaf-light)]"></span>Occupied</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-[var(--moss)]"></span>Yours</span>
+                  </div>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                  <div class="locker-cell full">A-01</div>
+                  <div class="locker-cell full">A-02</div>
+                  <div class="locker-cell yours">A-03</div>
+                  <div class="locker-cell empty">A-04</div>
+                  <div class="locker-cell empty">A-05</div>
+                  <div class="locker-cell full">A-06</div>
+                  <div class="locker-cell full">A-07</div>
+                  <div class="locker-cell empty">A-08</div>
+                  <div class="locker-cell full">A-09</div>
+                  <div class="locker-cell empty">A-10</div>
+                  <div class="locker-cell full">A-11</div>
+                  <div class="locker-cell empty">A-12</div>
+                </div>
+              </div>
+
+              <div class="mt-4 p-3 rounded-xl bg-[var(--cream)] text-[11px] text-[var(--ink-2)] leading-relaxed">
+                <span class="font-semibold text-[var(--ink)]">Tip:</span> Tap your student ID against the locker reader, or scan this QR. Compartment A-03 will unlock automatically.
+              </div>
+
+              <div class="h-4"></div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-[var(--line)] bg-[var(--paper)]">
+              <button class="btn-primary w-full" onclick="collectItem()">I&rsquo;ve collected it</button>
+            </div>
+          </div>
+
+          <!-- ===== SCREEN 4: LIST ITEM ===== -->
+          <div class="screen" data-name="list">
+            <div class="status-bar">
+              <span>9:51</span>
+              <span class="flex items-center gap-1">
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M0 8h2v3H0zm4-2h2v5H4zm4-2h2v7H8zm4-2h2v9h-2z"/></svg>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M7 0C4.4 0 2 1 .2 2.7l1.4 1.4C2.9 2.7 4.9 2 7 2s4.1.7 5.4 2.1l1.4-1.4C12 1 9.6 0 7 0zM3 5.6L4.4 7c.7-.7 1.6-1 2.6-1s1.9.3 2.6 1L11 5.6C9.9 4.6 8.5 4 7 4s-2.9.6-4 1.6zM7 8.5L9 10l-2 1.5L5 10l2-1.5z"/></svg>
+                <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="17" height="7" rx="1" fill="currentColor"/><rect x="21" y="3" width="1.5" height="5" rx="0.5" fill="currentColor"/></svg>
+              </span>
+            </div>
+
+            <div class="px-6 py-3 flex items-center justify-between">
+              <button onclick="navigateTo('home')" class="w-10 h-10 rounded-full bg-[var(--cream)] flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="text-center">
+                <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)]">Step 2 of 3</div>
+                <div class="font-semibold text-sm">List an item</div>
+              </div>
+              <div class="font-mono text-[10px] text-[var(--ink-2)]">~90s</div>
+            </div>
+
+            <!-- Progress -->
+            <div class="px-6 mb-4">
+              <div class="h-1 bg-[var(--cream)] rounded-full overflow-hidden">
+                <div class="h-full w-2/3 bg-[var(--moss)] rounded-full"></div>
+              </div>
+            </div>
+
+            <div class="screen-content px-6">
+
+              <h2 class="screen-heading text-2xl mb-1">Tell us about it</h2>
+              <p class="text-sm text-[var(--ink-2)] mb-5">All shares stay anonymous. Your name is never shown to the receiver.</p>
+
+              <!-- Photo upload -->
+              <div class="flex gap-2 mb-5">
+                <div class="w-24 h-24 rounded-2xl bg-[var(--cream)] flex flex-col items-center justify-center text-[var(--ink-2)] cursor-pointer border-2 border-dashed border-[var(--leaf-light)]">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <span class="font-mono text-[9px] mt-1">ADD PHOTO</span>
+                </div>
+                <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-[var(--cream)] to-[#E8D9B0] flex items-center justify-center text-3xl relative">
+                  🍚
+                  <button class="absolute top-1 right-1 w-5 h-5 rounded-full bg-[var(--ink)] text-white flex items-center justify-center text-[10px]">×</button>
+                </div>
+              </div>
+
+              <!-- Category -->
+              <div class="mb-5">
+                <label class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] block mb-2">Category</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button class="p-3 rounded-2xl border-2 border-[var(--moss)] bg-white text-left">
+                    <div class="text-xl mb-1">🍜</div>
+                    <div class="font-semibold text-sm">Food</div>
+                    <div class="text-[10px] text-[var(--ink-2)] mt-0.5">Sealed only</div>
+                  </button>
+                  <button class="p-3 rounded-2xl border-2 border-[var(--line)] bg-white text-left opacity-60">
+                    <div class="text-xl mb-1">🍳</div>
+                    <div class="font-semibold text-sm">Cookware</div>
+                    <div class="text-[10px] text-[var(--ink-2)] mt-0.5">Any condition</div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Title -->
+              <div class="mb-5">
+                <label class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] block mb-2">What is it?</label>
+                <div class="p-3.5 rounded-2xl border border-[var(--line)] bg-white">
+                  <div class="font-semibold text-sm">Unopened jasmine rice (2kg bag)</div>
+                </div>
+              </div>
+
+              <!-- Expiry -->
+              <div class="mb-5">
+                <label class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] block mb-2">Expiry date <span class="text-[var(--terracotta)]">*</span></label>
+                <div class="p-3.5 rounded-2xl border border-[var(--line)] bg-white flex items-center justify-between">
+                  <div class="font-semibold text-sm">30 August 2026</div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                </div>
+              </div>
+
+              <!-- Locker selection -->
+              <div class="mb-5">
+                <label class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] block mb-2">Nearest locker</label>
+                <div class="p-3.5 rounded-2xl border border-[var(--line)] bg-white">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="font-semibold text-sm">NTT Hall · A-04</div>
+                      <div class="text-[11px] text-[var(--ink-2)] mt-0.5">2 compartments free · auto-suggested</div>
+                    </div>
+                    <span class="pill pill-fresh">2 min walk</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Anonymity reassurance -->
+              <div class="mb-6 p-3.5 rounded-2xl bg-[var(--moss)] text-white">
+                <div class="flex items-center gap-2.5 mb-1">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <div class="font-semibold text-sm">You&rsquo;ll appear as &ldquo;Donor #2847&rdquo;</div>
+                </div>
+                <div class="text-[11px] opacity-90 leading-relaxed">Your real ID is linked only on our backend for safety &mdash; never shown to receivers.</div>
+              </div>
+
+              <div class="h-4"></div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-[var(--line)] bg-[var(--paper)]">
+              <button class="btn-primary w-full" onclick="publishItem()">Generate locker key →</button>
+            </div>
+          </div>
+
+          <!-- ===== SCREEN 5: PROFILE / IMPACT ===== -->
+          <div class="screen" data-name="profile">
+            <div class="status-bar">
+              <span>9:55</span>
+              <span class="flex items-center gap-1">
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M0 8h2v3H0zm4-2h2v5H4zm4-2h2v7H8zm4-2h2v9h-2z"/></svg>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M7 0C4.4 0 2 1 .2 2.7l1.4 1.4C2.9 2.7 4.9 2 7 2s4.1.7 5.4 2.1l1.4-1.4C12 1 9.6 0 7 0zM3 5.6L4.4 7c.7-.7 1.6-1 2.6-1s1.9.3 2.6 1L11 5.6C9.9 4.6 8.5 4 7 4s-2.9.6-4 1.6zM7 8.5L9 10l-2 1.5L5 10l2-1.5z"/></svg>
+                <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="17" height="7" rx="1" fill="currentColor"/><rect x="21" y="3" width="1.5" height="5" rx="0.5" fill="currentColor"/></svg>
+              </span>
+            </div>
+
+            <div class="screen-content">
+
+              <!-- Header card -->
+              <div class="px-6 pt-2 pb-4">
+                <div class="rounded-3xl bg-gradient-to-br from-[var(--moss-deep)] via-[var(--moss)] to-[#3D5A3A] p-5 text-white relative overflow-hidden">
+                  <!-- Decorative leaf — same shape family as the logo -->
+                  <svg viewBox="0 0 100 100" class="absolute -right-6 -bottom-6 w-36 h-36 opacity-15" fill="white">
+                    <path d="M 30 80 Q 30 40 60 24 Q 84 14 84 14 Q 84 50 60 70 Q 44 82 30 80 Z"/>
+                  </svg>
+
+                  <div class="relative">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <div class="font-mono text-[10px] uppercase tracking-wider opacity-70">Donor ID</div>
+                        <div class="font-display text-2xl font-semibold mt-1">#2847</div>
+                      </div>
+                      <div class="text-right">
+                        <div class="font-mono text-[10px] uppercase tracking-wider opacity-70">Reputation</div>
+                        <div class="text-lg font-semibold mt-1 flex items-center gap-1 justify-end">★ 4.9</div>
+                      </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-t border-white/15">
+                      <div class="font-mono text-[10px] uppercase tracking-wider opacity-70 mb-1">Eco-Points</div>
+                      <div class="flex items-end justify-between">
+                        <div class="stat-num text-5xl">142</div>
+                        <button class="text-xs font-semibold bg-white/20 backdrop-blur px-4 py-2 rounded-full">Redeem →</button>
+                      </div>
+                      <div class="mt-3 h-1.5 bg-white/15 rounded-full overflow-hidden">
+                        <div class="h-full w-[71%] bg-[var(--amber)] rounded-full"></div>
+                      </div>
+                      <div class="text-[11px] opacity-80 mt-1.5">58 points to next tier &mdash; <span class="font-semibold text-[var(--amber)]">Green Champion</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Impact stats -->
+              <div class="px-6 mb-4">
+                <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] mb-3">Your impact · May 2026</div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="p-3 rounded-2xl bg-white border border-[var(--line)]">
+                    <div class="stat-num text-2xl text-[var(--moss-deep)]">12</div>
+                    <div class="text-[10px] text-[var(--ink-2)] leading-tight mt-1">items<br>shared</div>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-white border border-[var(--line)]">
+                    <div class="stat-num text-2xl text-[var(--moss-deep)]">3.2<span class="text-sm">kg</span></div>
+                    <div class="text-[10px] text-[var(--ink-2)] leading-tight mt-1">CO₂<br>saved</div>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-white border border-[var(--line)]">
+                    <div class="stat-num text-2xl text-[var(--moss-deep)]">$240</div>
+                    <div class="text-[10px] text-[var(--ink-2)] leading-tight mt-1">HKD<br>diverted</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Activity -->
+              <div class="px-6">
+                <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] mb-3">Recent activity</div>
+
+                <div class="space-y-2">
+                  <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[var(--line)]">
+                    <div class="w-9 h-9 rounded-xl bg-[#E8F0DE] flex items-center justify-center text-base">📥</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-semibold">Reserved jasmine rice</div>
+                      <div class="text-[11px] text-[var(--ink-2)]">From #2847 · A-03 · just now</div>
+                    </div>
+                    <div class="text-[var(--moss)] font-mono text-xs font-semibold">+5</div>
+                  </div>
+
+                  <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[var(--line)]">
+                    <div class="w-9 h-9 rounded-xl bg-[#F4E8D8] flex items-center justify-center text-base">📤</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-semibold">Shared 3 packs of biscuits</div>
+                      <div class="text-[11px] text-[var(--ink-2)]">Collected by #1845 · Yesterday</div>
+                    </div>
+                    <div class="text-[var(--moss)] font-mono text-xs font-semibold">+10</div>
+                  </div>
+
+                  <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[var(--line)]">
+                    <div class="w-9 h-9 rounded-xl bg-[#FAE5D7] flex items-center justify-center text-base">👥</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-semibold">Roommate joined via your link</div>
+                      <div class="text-[11px] text-[var(--ink-2)]">12 May · referral bonus</div>
+                    </div>
+                    <div class="text-[var(--moss)] font-mono text-xs font-semibold">+15</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SDG badge -->
+              <div class="mx-6 mt-5 p-4 rounded-2xl bg-[var(--cream)] border border-[var(--line)]">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-[#BF8B2E] flex items-center justify-center text-white font-display font-bold text-lg flex-shrink-0">12</div>
+                  <div class="flex-1">
+                    <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)]">Contributing to</div>
+                    <div class="text-sm font-semibold leading-tight">UN SDG 12 — Responsible Consumption &amp; Production</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="h-6"></div>
+            </div>
+
+            <div class="tab-bar">
+              <div class="tab-item" onclick="navigateTo('home')" style="cursor:pointer;">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span class="tab-label">BROWSE</span>
+              </div>
+              <div class="tab-item">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <span class="tab-label">SEARCH</span>
+              </div>
+              <div class="tab-item">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>
+                <span class="tab-label">LIST</span>
+              </div>
+              <div class="tab-item">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="14" r="1"/></svg>
+                <span class="tab-label">LOCKER</span>
+              </div>
+              <div class="tab-item active">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
+                <span class="tab-label">YOU</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== DESKTOP VIEW: VENDOR / CANTEEN CONSOLE (Screen 6) ===== -->
+      <div class="desktop-frame" id="desktop-container" style="display:none;">
+        <!-- Browser chrome -->
+        <div class="browser-chrome">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-full bg-[#FF5F57]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#FEBC2E]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#28C840]"></span>
+          </div>
+          <div class="browser-url">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            partners.appetie.hkbu.edu.hk &nbsp;<span class="opacity-50">/ canteen / dashboard</span>
+          </div>
+          <div class="w-12"></div>
+        </div>
+
+        <!-- Dashboard content -->
+        <div class="desktop-content">
+
+          <!-- Top bar -->
+          <div class="vendor-topbar">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-[var(--moss)] flex items-center justify-center text-white">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              </div>
+              <div>
+                <div class="font-display text-lg font-semibold text-[var(--ink)] leading-none">AF Canteen — Console</div>
+                <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] mt-1">Operator: K. Lam · Closing in 32 min</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="vendor-status">
+                <span class="status-dot"></span>
+                <span class="text-xs font-semibold">7 p.m. window OPEN</span>
+              </div>
+              <button class="vendor-btn-ghost">Reports</button>
+              <button class="vendor-btn-ghost">Help</button>
+            </div>
+          </div>
+
+          <!-- KPI strip -->
+          <div class="vendor-kpis">
+            <div class="vendor-kpi">
+              <div class="vendor-kpi-label">Today &middot; surplus listed</div>
+              <div class="vendor-kpi-value">14 <span class="text-base text-[var(--ink-2)] font-normal">items</span></div>
+              <div class="vendor-kpi-delta up">+3 vs avg</div>
+            </div>
+            <div class="vendor-kpi">
+              <div class="vendor-kpi-label">Collected by students</div>
+              <div class="vendor-kpi-value">11 <span class="text-base text-[var(--ink-2)] font-normal">/ 14</span></div>
+              <div class="vendor-kpi-delta up">78.6% pickup rate</div>
+            </div>
+            <div class="vendor-kpi">
+              <div class="vendor-kpi-label">Food diverted (week)</div>
+              <div class="vendor-kpi-value">38.4 <span class="text-base text-[var(--ink-2)] font-normal">kg</span></div>
+              <div class="vendor-kpi-delta up">≈ HK$ 1,240 value</div>
+            </div>
+            <div class="vendor-kpi" style="background: var(--moss); color: white;">
+              <div class="vendor-kpi-label" style="color: rgba(255,255,255,0.7);">Subscription</div>
+              <div class="vendor-kpi-value" style="color: white;">HK$ 800<span class="text-sm font-normal opacity-70">/mo</span></div>
+              <div class="vendor-kpi-delta" style="color: var(--amber);">Next bill 1 Jun</div>
+            </div>
+          </div>
+
+          <!-- Two columns -->
+          <div class="vendor-main">
+
+            <!-- Left: Bulk listing form -->
+            <section class="vendor-card">
+              <div class="vendor-section-header">
+                <div>
+                  <div class="vendor-section-title">Bulk-list end-of-day surplus</div>
+                  <div class="font-mono text-[10px] uppercase tracking-wider text-[var(--ink-2)] mt-1">Items here go straight into reserved canteen lockers</div>
+                </div>
+                <button class="vendor-btn-ghost text-xs">+ Add row</button>
+              </div>
+
+              <!-- Table -->
+              <div class="vendor-table">
+                <div class="vendor-table-header">
+                  <div style="flex: 2.2;">Item</div>
+                  <div style="flex: 0.8;">Qty</div>
+                  <div style="flex: 1.2;">Expiry</div>
+                  <div style="flex: 1.2;">Locker</div>
+                  <div style="flex: 0.6;"></div>
+                </div>
+
+                <div class="vendor-table-row">
+                  <div style="flex: 2.2;" class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#FBE5D6] to-[#F4C99A] flex items-center justify-center text-lg flex-shrink-0">🥪</div>
+                    <div>
+                      <div class="text-sm font-semibold leading-tight">Tuna sandwich (pre-packaged)</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)] mt-0.5">SKU AFC-031 &middot; 220g</div>
+                    </div>
+                  </div>
+                  <div style="flex: 0.8;" class="font-mono text-sm font-semibold">× 4</div>
+                  <div style="flex: 1.2;">
+                    <span class="pill pill-soon">Tonight 22:00</span>
+                  </div>
+                  <div style="flex: 1.2;" class="font-mono text-xs font-semibold">VC-A &middot; A-09 → 12</div>
+                  <div style="flex: 0.6;" class="flex justify-end gap-1">
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>
+                  </div>
+                </div>
+
+                <div class="vendor-table-row">
+                  <div style="flex: 2.2;" class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#E8F0DE] to-[#A9C796] flex items-center justify-center text-lg flex-shrink-0">🥗</div>
+                    <div>
+                      <div class="text-sm font-semibold leading-tight">Garden salad cup</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)] mt-0.5">SKU AFC-018 &middot; 180g</div>
+                    </div>
+                  </div>
+                  <div style="flex: 0.8;" class="font-mono text-sm font-semibold">× 6</div>
+                  <div style="flex: 1.2;">
+                    <span class="pill pill-soon">Tonight 21:30</span>
+                  </div>
+                  <div style="flex: 1.2;" class="font-mono text-xs font-semibold">VC-A &middot; A-10 → 11</div>
+                  <div style="flex: 0.6;" class="flex justify-end gap-1">
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>
+                  </div>
+                </div>
+
+                <div class="vendor-table-row">
+                  <div style="flex: 2.2;" class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#F4E8D8] to-[#E8C09A] flex items-center justify-center text-lg flex-shrink-0">🍞</div>
+                    <div>
+                      <div class="text-sm font-semibold leading-tight">Wholemeal bread loaf, sealed</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)] mt-0.5">SKU AFC-007 &middot; 400g</div>
+                    </div>
+                  </div>
+                  <div style="flex: 0.8;" class="font-mono text-sm font-semibold">× 2</div>
+                  <div style="flex: 1.2;">
+                    <span class="pill pill-fresh">16 May</span>
+                  </div>
+                  <div style="flex: 1.2;" class="font-mono text-xs font-semibold">VC-A &middot; A-11</div>
+                  <div style="flex: 0.6;" class="flex justify-end gap-1">
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>
+                  </div>
+                </div>
+
+                <div class="vendor-table-row">
+                  <div style="flex: 2.2;" class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#FBE5D6] to-[#F4C99A] flex items-center justify-center text-lg flex-shrink-0">🍱</div>
+                    <div>
+                      <div class="text-sm font-semibold leading-tight">Bento box · teriyaki chicken</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)] mt-0.5">SKU AFC-042 &middot; 380g</div>
+                    </div>
+                  </div>
+                  <div style="flex: 0.8;" class="font-mono text-sm font-semibold">× 3</div>
+                  <div style="flex: 1.2;">
+                    <span class="pill pill-soon">Tonight 21:00</span>
+                  </div>
+                  <div style="flex: 1.2;" class="font-mono text-xs font-semibold">VC-A &middot; A-12</div>
+                  <div style="flex: 0.6;" class="flex justify-end gap-1">
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="vendor-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>
+                  </div>
+                </div>
+
+                <!-- Empty add row -->
+                <div class="vendor-table-row vendor-table-add">
+                  <div style="flex: 2.2;" class="flex items-center gap-2.5 text-[var(--ink-2)]">
+                    <div class="w-9 h-9 rounded-lg bg-[var(--cream)] flex items-center justify-center flex-shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    </div>
+                    <span class="text-sm">Scan barcode or pick from menu&hellip;</span>
+                  </div>
+                  <div style="flex: 0.8;" class="font-mono text-xs text-[var(--ink-2)]">—</div>
+                  <div style="flex: 1.2;" class="font-mono text-xs text-[var(--ink-2)]">auto</div>
+                  <div style="flex: 1.2;" class="font-mono text-xs text-[var(--ink-2)]">auto</div>
+                  <div style="flex: 0.6;"></div>
+                </div>
+              </div>
+
+              <!-- Form footer -->
+              <div class="vendor-form-footer">
+                <div class="flex items-start gap-2.5 text-[11px] text-[var(--ink-2)] leading-relaxed flex-1">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--moss)" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span>Items are <span class="font-semibold text-[var(--ink)]">auto-anonymised</span> to students — &ldquo;AF Canteen 7 p.m. surplus&rdquo; is the only label they see. Push goes to ~340 nearby students.</span>
+                </div>
+                <button class="vendor-btn-primary" onclick="publishVendor()">Publish 15 items &amp; print locker tags →</button>
+              </div>
+
+            </section>
+
+            <!-- Right: Side panels -->
+            <aside class="vendor-side">
+
+              <!-- Locker availability -->
+              <div class="vendor-card-sm">
+                <div class="vendor-section-title-sm">Locker availability</div>
+                <div class="font-mono text-[10px] text-[var(--ink-2)] mb-3">VC-A &middot; ground floor &middot; allocated by canteen agreement</div>
+
+                <div class="grid grid-cols-4 gap-1.5">
+                  <div class="locker-cell full">A-01</div>
+                  <div class="locker-cell full">A-02</div>
+                  <div class="locker-cell full">A-03</div>
+                  <div class="locker-cell full">A-04</div>
+                  <div class="locker-cell full">A-05</div>
+                  <div class="locker-cell empty">A-06</div>
+                  <div class="locker-cell empty">A-07</div>
+                  <div class="locker-cell empty">A-08</div>
+                  <div class="locker-cell yours">A-09</div>
+                  <div class="locker-cell yours">A-10</div>
+                  <div class="locker-cell yours">A-11</div>
+                  <div class="locker-cell yours">A-12</div>
+                </div>
+
+                <div class="flex items-center gap-3 text-[10px] font-mono text-[var(--ink-2)] mt-3 pt-3 border-t border-[var(--line)]">
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-[var(--moss)]"></span>Reserved for you (4)</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-[var(--leaf-light)]"></span>Student-listed</span>
+                </div>
+              </div>
+
+              <!-- Live pickups -->
+              <div class="vendor-card-sm">
+                <div class="vendor-section-title-sm">Live pickups today</div>
+                <div class="space-y-2 mt-2">
+
+                  <div class="flex items-center gap-2.5 text-xs">
+                    <div class="w-7 h-7 rounded-lg bg-[#E8F0DE] flex items-center justify-center text-sm flex-shrink-0">📤</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold">Tuna sandwich × 1</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)]">Student #4012 &middot; 18:42</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2.5 text-xs">
+                    <div class="w-7 h-7 rounded-lg bg-[#E8F0DE] flex items-center justify-center text-sm flex-shrink-0">📤</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold">Garden salad cup × 2</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)]">Students #2199, #3801 &middot; 18:31</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2.5 text-xs">
+                    <div class="w-7 h-7 rounded-lg bg-[#E8F0DE] flex items-center justify-center text-sm flex-shrink-0">📤</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold">Bento box × 1</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)]">Student #1592 &middot; 18:18</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2.5 text-xs opacity-60">
+                    <div class="w-7 h-7 rounded-lg bg-[var(--cream)] flex items-center justify-center text-sm flex-shrink-0">⏳</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold">3 items awaiting</div>
+                      <div class="font-mono text-[10px] text-[var(--ink-2)]">Purge in 22h if uncollected</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- ESG report mini -->
+              <div class="vendor-card-sm" style="background: var(--moss-deep); color: white;">
+                <div class="font-mono text-[10px] uppercase tracking-wider opacity-70">May report &middot; preview</div>
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <div class="stat-num text-xl text-white">142kg</div>
+                    <div class="text-[10px] opacity-80 mt-0.5 leading-tight">food diverted from waste</div>
+                  </div>
+                  <div>
+                    <div class="stat-num text-xl text-[var(--amber)]">SDG 12</div>
+                    <div class="text-[10px] opacity-80 mt-0.5 leading-tight">contribution tracked</div>
+                  </div>
+                </div>
+                <button class="w-full mt-3 py-2 text-[11px] font-semibold bg-white/15 backdrop-blur rounded-lg">Export for HKBU Estates →</button>
+              </div>
+
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== HARDWARE VIEW: SMART LOCKER (Screen 7) ===== -->
+      <div class="hardware-frame" id="hardware-container" style="display:none;">
+        <div class="hw-stage">
+
+          <div class="hw-locker">
+
+            <!-- Numbered pins -->
+            <span class="hw-pin hw-pin-1">1</span>
+            <span class="hw-pin hw-pin-2">2</span>
+            <span class="hw-pin hw-pin-3">3</span>
+            <span class="hw-pin hw-pin-4">4</span>
+            <span class="hw-pin hw-pin-5">5</span>
+
+            <!-- Outer shell -->
+            <div class="hw-shell">
+
+              <!-- Top control panel -->
+              <div class="hw-control-panel">
+                <div class="hw-brand">
+                  <div class="hw-brand-logo">
+                    <svg viewBox="0 0 80 80" width="22" height="22">
+                      <path d="M 28 56 Q 28 32 46 24 Q 60 20 60 20 Q 60 38 46 50 Q 36 58 28 56 Z" fill="#A9C796"/>
+                      <path d="M 30 54 Q 44 42 58 22" stroke="#2F4A2C" stroke-width="2" fill="none" stroke-linecap="round"/>
+                      <circle cx="64" cy="42" r="2.5" fill="#D9A05B"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="hw-brand-text">Appetie</div>
+                    <div class="hw-brand-sub">UNIT NTT-A · HKBU</div>
+                  </div>
+                </div>
+
+                <div class="hw-screen-display">
+                  <div class="hw-screen-label">AVAILABLE</div>
+                  <div class="hw-screen-value">5 / 12</div>
+                </div>
+
+                <div class="hw-scanner"></div>
+              </div>
+
+              <!-- Compartment grid: 3 cols × 4 rows = 12 -->
+              <div class="hw-compartments">
+                <div class="hw-comp occupied"><span class="hw-comp-label">A-01</span><span class="hw-led"></span></div>
+                <div class="hw-comp occupied"><span class="hw-comp-label">A-02</span><span class="hw-led"></span></div>
+                <div class="hw-comp reserved"><span class="hw-comp-label">A-03</span><span class="hw-led"></span></div>
+                <div class="hw-comp empty"><span class="hw-comp-label">A-04</span><span class="hw-led"></span></div>
+                <div class="hw-comp empty"><span class="hw-comp-label">A-05</span><span class="hw-led"></span></div>
+                <div class="hw-comp occupied"><span class="hw-comp-label">A-06</span><span class="hw-led"></span></div>
+                <div class="hw-comp occupied"><span class="hw-comp-label">A-07</span><span class="hw-comp-label">A-07</span><span class="hw-led"></span></div>
+                <div class="hw-comp empty"><span class="hw-comp-label">A-08</span><span class="hw-led"></span></div>
+                <div class="hw-comp occupied"><span class="hw-comp-label">A-09</span><span class="hw-led"></span></div>
+                <div class="hw-comp empty"><span class="hw-comp-label">A-10</span><span class="hw-led"></span></div>
+                <div class="hw-comp occupied"><span class="hw-comp-label">A-11</span><span class="hw-led"></span></div>
+                <div class="hw-comp empty"><span class="hw-comp-label">A-12</span><span class="hw-led"></span></div>
+              </div>
+            </div>
+
+            <!-- Base / pedestal -->
+            <div class="hw-base"></div>
+
+          </div>
+
+          <!-- Floor shadow -->
+          <div class="hw-floor-shadow"></div>
+        </div>
+
+        <!-- Right side: specs + callouts -->
+        <div class="hw-info">
+
+          <!-- Callouts key -->
+          <div class="hw-card">
+            <div class="hw-card-title">Unit anatomy</div>
+            <div class="hw-callouts">
+              <div class="hw-callout"><span class="hw-callout-num">1</span><div><strong>Brand panel</strong><span>5" status display</span></div></div>
+              <div class="hw-callout"><span class="hw-callout-num">2</span><div><strong>QR + NFC scanner</strong><span>Dual-factor auth via student card</span></div></div>
+              <div class="hw-callout"><span class="hw-callout-num">3</span><div><strong>Cream door</strong><span>Occupied · contents waiting</span></div></div>
+              <div class="hw-callout"><span class="hw-callout-num">4</span><div><strong>Amber LED</strong><span>Reserved · pulses until collected</span></div></div>
+              <div class="hw-callout"><span class="hw-callout-num">5</span><div><strong>Cable channel</strong><span>Power + ethernet · floor-flush</span></div></div>
+            </div>
+          </div>
+
+          <!-- Unit economics -->
+          <div class="hw-card hw-card-cost">
+            <div class="hw-card-title" style="color:white;">Unit economics</div>
+            <div class="hw-card-sub" style="color:rgba(255,255,255,0.6);">PER PILOT LOCKER · YEAR 1</div>
+            <div class="hw-cost-line"><span>Hardware (amortised)</span><span>$2,400</span></div>
+            <div class="hw-cost-line"><span>Electricity</span><span>$720</span></div>
+            <div class="hw-cost-line"><span>Maintenance &amp; cleaning</span><span>$1,200</span></div>
+            <div class="hw-cost-line"><span>Cloud + connectivity</span><span>$600</span></div>
+            <div class="hw-cost-total"><span>Annual operating cost</span><span>HK$4,920</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Below phone/desktop: hint -->
+      <div class="mt-6 text-center max-w-md">
+        <p class="text-xs text-[var(--ink-2)] leading-relaxed font-mono" id="bottom-hint">
+          <span class="font-semibold text-[var(--ink)]">Click the cards and buttons.</span><br>
+          The whole flow is clickable — rice card → reserve → QR → list new → profile.
+        </p>
+      </div>
+
+      <!-- Toast (shared between phone & desktop views) -->
+      <div class="toast-fixed" id="toast">Reserved · Show QR at locker A-03</div>
+
+    </div>
+
+    <!-- RIGHT: Design notes -->
+    <aside class="w-80 flex-shrink-0">
+      <div class="sticky top-8" id="design-notes">
+
+        <div class="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--ink-2)] mb-4 px-2">Design rationale</div>
+
+        <div class="p-5 rounded-2xl border border-[var(--line)] bg-white space-y-4" id="notes-content">
+          <!-- Content swapped by JS -->
+        </div>
+
+      </div>
+    </aside>
+
+  </main>
+
+</div>
+
+<script>
+  const notesContent = {
+    home: {
+      title: 'Browse — anchored in survey data',
+      points: [
+        { label: '63.8% wanted push notifications', desc: 'Distance + ETA shown on every card' },
+        { label: '3.41/5 valued category filters', desc: '“Expiring soon” chip surfaces urgent items' },
+        { label: 'Anonymous donor IDs', desc: '#2847 not name — direct response to 58.6% social embarrassment barrier' },
+        { label: 'Eco-Points front and centre', desc: 'Aligns with 3.34/5 importance of reward system' }
+      ],
+      talking: '“Notice that I show distance, expiry, and donor reputation — three of the top adoption drivers from the survey — without showing any identifying information about the donor.”'
+    },
+    detail: {
+      title: 'Item Detail — addressing 67.2% food-safety concern',
+      points: [
+        { label: 'Sealed/unopened only badge', desc: 'Visual signal that the listing follows the Purge Protocol' },
+        { label: 'Donor reputation visible', desc: 'Builds trust without revealing identity' },
+        { label: '4h hold timer', desc: 'Prevents abandoned reservations from blocking lockers' },
+        { label: 'Safety note inline', desc: 'Pre-emptively answers the #2 cited barrier' }
+      ],
+      talking: '“67.2% of respondents cited food safety as a barrier. Rather than hiding policy in T&C, the safety mechanism is visible right where the user makes the decision.”'
+    },
+    locker: {
+      title: 'Smart Locker — the differentiator',
+      points: [
+        { label: '24/7 access via QR + student ID', desc: 'Two-factor without breaking anonymity' },
+        { label: 'Live compartment map', desc: '12-compartment unit (matches operational plan)' },
+        { label: 'Visible countdown', desc: 'Creates urgency without pressure' },
+        { label: 'Locker hardware ≠ general apps', desc: 'This is what Olio/Carousell can\'t replicate' }
+      ],
+      talking: '“This is the answer to: how is Appetie different from existing platforms? Existing P2P apps require coordination between two people. The locker + 24/7 access decouples the transaction in time and space.”'
+    },
+    list: {
+      title: 'List Item — under 2 minutes',
+      points: [
+        { label: '69% cited process complexity', desc: '3-step flow with progress bar' },
+        { label: 'Photo + category + expiry only', desc: 'Minimum viable listing' },
+        { label: 'Auto-suggested nearest locker', desc: 'Removes a friction point' },
+        { label: 'Anonymity reassurance inline', desc: 'Shown before submission, not buried in settings' }
+      ],
+      talking: '“The estimated 90 seconds isn\'t marketing — it\'s a direct response to 69% of respondents citing complexity. Listing has only 4 required fields.”'
+    },
+    profile: {
+      title: 'Eco-Profile — making impact tangible',
+      points: [
+        { label: 'CO₂ + HKD diverted', desc: 'Concrete metrics, not vague “sustainability” language' },
+        { label: 'Tier progression', desc: 'Behavioural nudge from the 5-tier Eco-Points system' },
+        { label: 'Activity log shows both sides', desc: '74.1% give + 75.9% receive — same user, both behaviours' },
+        { label: 'SDG 12 badge', desc: 'Reportable metric — what HKBU sustainability office needs' }
+      ],
+      talking: '“This screen is where the report\'s “value to HKBU” section becomes operational. The CO₂ saved figure here is what gets aggregated into the THE Impact Ranking submission.”'
+    },
+    vendor: {
+      title: 'Canteen Console — the “7 p.m. Agreement” operationalised',
+      points: [
+        { label: 'Different user, different device', desc: 'Canteen staff use a desktop console — speed and bulk, not browsing' },
+        { label: 'Sub-minute end-of-day flow', desc: 'Scan barcode → auto-fill SKU, expiry, locker — driven by closing-time pressure' },
+        { label: '4 dedicated locker compartments', desc: 'A-09 to A-12 reserved by canteen agreement — guaranteed supply' },
+        { label: 'HK$ 800/mo subscription revenue', desc: 'Matches “Vendor Dashboard” row in the financial plan' },
+        { label: 'ESG report auto-generation', desc: 'kg diverted + SDG 12 = ready-made impact data for HKBU Estates' }
+      ],
+      talking: '“This is the B2B side of the platform — the canteen partnership generates HK$9,600/year in subscription revenue and supplies a guaranteed daily listing stream that prevents the cold-start problem.”'
+    },
+    locker_hw: {
+      title: 'Smart Locker hardware — the physical layer',
+      points: [
+        { label: '12-compartment modular unit', desc: '3×4 grid · 38×36×38 cm each · fits standard food containers' },
+        { label: 'Door colour signals state', desc: 'Cream = occupied, dark = empty, amber = reserved — readable from across the lobby' },
+        { label: 'Single 5" display at top only', desc: 'No screens on doors — donor privacy by design' },
+        { label: 'HK$4,920/year per locker', desc: 'Unit economics that the entire financial model scales from' },
+        { label: 'Differentiator from app-only platforms', desc: 'Olio and Carousell can\'t replicate physical infrastructure on campus' }
+      ],
+      talking: '“This is what makes Appetie infrastructure, not just an app. The locker decouples the donor and the receiver in time and space — they never need to meet or coordinate.”'
+    }
+  };
+
+  function updateNotes(screen) {
+    const data = notesContent[screen];
+    const html = `
+      <div class="font-display text-base font-semibold mb-3 text-[var(--ink)]">${data.title}</div>
+      ${data.points.map(p => `
+        <div class="flex gap-3 items-start">
+          <div class="w-1.5 h-1.5 rounded-full bg-[var(--moss)] mt-1.5 flex-shrink-0"></div>
+          <div>
+            <div class="text-xs font-semibold text-[var(--ink)]">${p.label}</div>
+            <div class="text-[11px] text-[var(--ink-2)] mt-0.5 leading-relaxed">${p.desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    `;
+    document.getElementById('notes-content').innerHTML = html;
+  }
+
+  function navigateTo(screenName) {
+    const isVendor = screenName === 'vendor';
+    const isHardware = screenName === 'locker_hw';
+
+    // Toggle views: phone vs desktop vs hardware
+    document.getElementById('phone-container').style.display = (isVendor || isHardware) ? 'none' : 'block';
+    document.getElementById('desktop-container').style.display = isVendor ? 'block' : 'none';
+    document.getElementById('hardware-container').style.display = isHardware ? 'grid' : 'none';
+
+    // For phone screens, swap active
+    if (!isVendor && !isHardware) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelector(`.screen[data-name="${screenName}"]`).classList.add('active');
+    }
+
+    document.querySelectorAll('.demo-nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector(`.demo-nav-item[data-screen="${screenName}"]`).classList.add('active');
+
+    const labels = {
+      home: 'SCREEN 01 / 07 — BROWSE',
+      detail: 'SCREEN 02 / 07 — ITEM DETAIL',
+      locker: 'SCREEN 03 / 07 — SMART LOCKER (APP)',
+      list: 'SCREEN 04 / 07 — LIST ITEM',
+      profile: 'SCREEN 05 / 07 — ECO-PROFILE',
+      vendor: 'SCREEN 06 / 07 — CANTEEN CONSOLE (B2B)',
+      locker_hw: 'SCREEN 07 / 07 — SMART LOCKER (HARDWARE)'
+    };
+    document.getElementById('screen-label').textContent = labels[screenName];
+
+    // Update bottom hint
+    const hints = {
+      home: '<span class="font-semibold text-[var(--ink)]">Click the cards and buttons.</span><br>The whole flow is clickable — rice card → reserve → QR → list new → profile.',
+      detail: 'Try the <span class="font-semibold text-[var(--ink)]">Reserve · 4h hold</span> button to trigger the QR code flow.',
+      locker: 'Hit <span class="font-semibold text-[var(--ink)]">I&rsquo;ve collected it</span> to jump to the Eco-Profile screen.',
+      list: 'Fill out a listing and tap <span class="font-semibold text-[var(--ink)]">Generate locker key</span>.',
+      profile: 'This is the impact dashboard — view CO₂ saved &amp; SDG 12 contribution.',
+      vendor: 'B2B side: canteen staff publishes end-of-day surplus in bulk. Demonstrates the <span class="font-semibold text-[var(--ink)]">HK$9,600/year subscription revenue</span> stream.',
+      locker_hw: 'The physical hardware. <span class="font-semibold text-[var(--ink)]">HK$4,920/year per locker</span> — the unit economics that scale the whole financial model.'
+    };
+    document.getElementById('bottom-hint').innerHTML = hints[screenName];
+
+    updateNotes(screenName);
+
+    // Scroll the screen content back to top
+    document.querySelectorAll('.screen-content').forEach(el => { el.scrollTop = 0; });
+  }
+
+  document.querySelectorAll('.demo-nav-item').forEach(item => {
+    item.addEventListener('click', () => navigateTo(item.dataset.screen));
+  });
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function reserveItem() {
+    showToast('Reserved · QR code generated');
+    setTimeout(() => navigateTo('locker'), 800);
+  }
+
+  function collectItem() {
+    showToast('+5 Eco-Points · Thanks for sharing waste');
+    setTimeout(() => navigateTo('profile'), 1000);
+  }
+
+  function publishItem() {
+    showToast('Listed · Deposit within 2h at A-04');
+    setTimeout(() => navigateTo('home'), 1000);
+  }
+
+  function publishVendor() {
+    showToast('15 items published · Push sent to 340 students nearby');
+  }
+
+  // Init
+  updateNotes('home');
+</script>
+
+</body>
+</html>
